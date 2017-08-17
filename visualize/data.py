@@ -64,28 +64,33 @@ def similarity_to_distance(S, missing_value = 0):
     Remove all zero rows
     Identical image --> 0
     Mostly labelled --> 1
-    0               --> large number
+    0               --> missing_value
     etc
     """
-    N = S.shape[0]
-
-    # remove entries with all zeroes
-    # means that it is not covered by ViSiProg
-    marginal_sum = np.sum(np.multiply(S, 1 - np.eye(N)), axis = 0)
-    nonZeroIndex = np.where(marginal_sum > 0)[0]
-    Sred = S[:, nonZeroIndex][nonZeroIndex,:]
-    Nred = Sred.shape[0]
+    S_nonzero, nonZeroIndex = remove_zero_rows(S)
 
     # convert to similarity matrix
     # set the diagonal to be 0
-    np.fill_diagonal(S, 0)
-    D = np.max(S) + 1 - S
+    np.fill_diagonal(S_nonzero, 0)
+    D = np.max(S_nonzero) + 1 - S_nonzero
 
     np.fill_diagonal(D, 0)
-    max_value = np.max(D)
-    D[D == max_value] = missing_value
+    D[D == np.max(D)] = missing_value
 
     return D, nonZeroIndex
+
+
+def remove_zero_rows(S):
+    """ 
+    remove entries with all zeroes
+    means that it is not covered by ViSiProg
+    """
+    N = S.shape[0]
+    marginal_sum = np.sum(np.multiply(S, 1 - np.eye(N)), axis = 0)
+    nonZeroIndex = np.where(marginal_sum > 0)[0]
+    S_nonzero = S[:, nonZeroIndex][nonZeroIndex,:]
+
+    return S_nonzero, nonZeroIndex
 
 
 def spectral_clustering(S):
@@ -97,25 +102,42 @@ def spectral_clustering(S):
     0               --> large number
     etc
     """
-    N = S.shape[0]
 
-    # remove entries with all zeroes
-    # means that it is not covered by ViSiProg
-    marginal_sum = np.sum(np.multiply(S, 1 - np.eye(N)), axis = 0)
-    nonZeroIndex = np.where(marginal_sum > 0)[0]
-    Sred = S[:, nonZeroIndex][nonZeroIndex,:]
-    Nred = Sred.shape[0]
+    S_nonzero, nonZeroIndex = remove_zero_rows(S)
 
     # convert to similarity matrix
     # set the diagonal to be 0
-    np.fill_diagonal(S, 0)
-    D = np.max(S) + 1 - S
+    Adjacent = S_nonzero/(np.max(S_nonzero) + 1)
+    np.fill_diagonal(Adjacent, 0)
 
-    np.fill_diagonal(D, 0)
-    max_value = np.max(D)
-    D[D == max_value] = missing_value
 
-    return D, nonZeroIndex
+    print("Adjacent")
+    print(Adjacent)
+
+    # Laplacian matrix
+    Degree = np.diag(np.sum(Adjacent, axis=0))  # degree matrix
+    Laplacian = Degree - Adjacent
+
+    print("Laplacian")
+    print(Laplacian)
+
+    eigenValues, eigenVectors = np.linalg.eig(Laplacian)
+
+    eigenValues = np.abs(eigenValues)
+    eigenVectors = np.abs(eigenVectors)
+    
+    idx = eigenValues.argsort()
+    eigenValues = eigenValues[idx]
+    eigenVectors = eigenVectors[:,idx]
+
+    eps = 1e-2
+    N_disconnected_clusters = np.sum(eigenValues < eps)
+
+    # take first ith eigenvectors
+    X = eigenVectors[:,:N_disconnected_clusters] 
+
+    return X, nonZeroIndex
+
 
 
 def MDS(D):
