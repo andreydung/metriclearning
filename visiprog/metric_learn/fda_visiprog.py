@@ -21,7 +21,7 @@ from sklearn.utils.validation import check_X_y
 from .base_metric import BaseMetricLearner
 
 
-class LFDA(BaseMetricLearner):
+class LFDA_VISIPROG(BaseMetricLearner):
   '''
   Local Fisher Discriminant Analysis for Supervised Dimensionality Reduction
   Sugiyama, ICML 2006
