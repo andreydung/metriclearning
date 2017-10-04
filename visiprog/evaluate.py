@@ -14,4 +14,10 @@ def leave_one_sample_out(X):
 	distances, indices = nbrs.kneighbors(X)
 	prediction = label[indices[:,1]]
 
-	return (np.mean(prediction == label))
+	accuracy = np.mean(prediction == label)
+
+	results = {}
+	results['accuracy'] = accuracy
+	results['prediction'] = prediction
+
+	return results
