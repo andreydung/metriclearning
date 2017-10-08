@@ -6,7 +6,7 @@ import scipy
 from sklearn import manifold
 
 
-def readImgList():
+def read_img_list():
     folder = '/Users/andrey/Dropbox/Hacking/Research/VisiProg2/firebase/curetaliasfree/static/CURET/images'
     listFile = '/Users/andrey/Dropbox/Hacking/Research/VisiProg2/firebase/curetaliasfree/static/CURET/list.txt'
     with open(listFile) as f:
@@ -15,7 +15,7 @@ def readImgList():
     return paths
 
 
-def readVSPLabel():
+def read_VSP_label():
     N = 5245
     N_group = 9
 
@@ -38,6 +38,12 @@ def readVSPLabel():
             groups.append(gs)
 
     return groups, N
+
+
+def read_material_label():
+    label = np.genfromtxt('/Users/andrey/Dropbox/Hacking/Research/VisiProg2/analysis/thesis/visiprog/data/label.csv', delimiter = ',').astype(int)
+    label = label - 1
+    return label
 
 
 def count_matrix(groups, N):
