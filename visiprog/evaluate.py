@@ -27,9 +27,12 @@ def leave_one_sample_out(X, label):
 
 def split_material_validate(X, Y, ratio=0.5):
 
+	indices = np.arange(X.shape[0])
+
 	label_material = read_material_label()
 
-	X_train, X_test, Y_train, Y_test = \
-		train_test_split(X, Y, test_size=ratio, random_state=42, stratify=Y)
+	X_train, X_test, Y_train, Y_test, idx_train, idx_test = \
+		train_test_split(X, Y, indices, test_size=ratio, random_state=42, stratify=Y)
 
-	return X_train, X_test, Y_train, Y_test
+
+	return X_train, X_test, Y_train, Y_test, idx_train, idx_test
