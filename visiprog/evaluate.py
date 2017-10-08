@@ -9,9 +9,10 @@ def leave_one_sample_out(X):
 	'''
 	label = np.genfromtxt('/Users/andrey/Dropbox/Hacking/Research/VisiProg2/analysis/thesis/visiprog/data/label.csv', delimiter = ',')
 
+	# one nearest neighbor
 	nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(X)
-
 	distances, indices = nbrs.kneighbors(X)
+
 	prediction = label[indices[:,1]]
 
 	accuracy = np.mean(prediction == label)
