@@ -30,8 +30,8 @@ def leave_one_sample_out(X_train, Y_train, X_test = None, Y_test=None):
 		logger.info("Nearest neighbor on separate test data")
 		distances, indices = nbrs.kneighbors(X_test)
 
-		# print(distances)
-		# print(indices)
+		# logger.debug(distances)
+		logger.debug(indices)
 
 		prediction = Y_train[indices[:,0]]
 		accuracy = np.mean(prediction == Y_test)
