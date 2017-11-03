@@ -33,9 +33,18 @@ def calculate_distance(path1, path2):
 print("Warped")
 print(calculate_distance('distorted/original.png','distorted/warped.png'))
 
+print("Very Warped")
+print(calculate_distance('distorted/original.png','distorted/warped_verydistorted.png'))
+
+
 print("Rotated")
 print(calculate_distance('distorted/original.png','distorted/rotated.png'))
+
+print("Very Rotated")
+print(calculate_distance('distorted/original.png','distorted/rotated_verydistorted.png'))
 
 print("Shifted")
 print(calculate_distance('distorted/original.png','distorted/shifted.png'))
 
+print("Very Shifted")
+print(calculate_distance('distorted/original.png','distorted/shifted_verydistorted.png'))
