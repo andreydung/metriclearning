@@ -4,14 +4,59 @@ from sklearn import cluster
 import os
 import scipy
 from sklearn import manifold
+import pandas as pd
 
 
-def get_raw_feature():
+def polar_to_euclidean(theta, phi):
+    '''
+    theta is polar angle (angle from z axis)
+    phi is azimuth angle (angle from x axis to projection)
+    
+    '''
+    X = np.sin(theta) * np.cos(phi)
+    Y = np.sin(theta) * np.sin(phi)
+    Z = np.cos(theta)
+    return (X, Y, Z)
+
+
+def angle_between(v1, v2):
+    ''' Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    '''
+    
+    def unit_vector(vector):
+        """ Returns the unit vector of the vector.  """
+        return vector / np.linalg.norm(vector)
+
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+
+
+def read_raw_feature():
+    '''
+    raw feature of CURET dataset
+    using STSIM-M features
+    '''
+
     raw_feature = np.genfromtxt('visiprog/data/curetaliasfree.csv',delimiter=",")
     return raw_feature
 
 
 def read_img_list():
+    '''
+    read list of images in CURET
+    as a pandas dataframe
+    use index column to access (not location index)
+    '''
+    
     folder = 'visiprog/data/curetaliasfree/images'
     listFile = 'visiprog/data/curetaliasfree/list.txt'
     with open(listFile) as f:
@@ -20,16 +65,29 @@ def read_img_list():
     return paths
 
 
-def get_viewing_condition(img_name):
+def read_viewing_conditions():
+    '''
+    read the viewing condition index
+    '''
+    df = pd.read_csv('visiprog/data/viewing.csv', index_col=0)
+    return df
+
+
+def viewing_condition_index(img_name):
+    '''
+    return viewing index based on image name
+    '''
+
     img = img_name.split('.')[0]
     viewing_index = int(img.split('-')[1])
 
     return viewing_index
 
 
-def read_VSP_label():
-    N = 5245
-    N_group = 9
+def read_VSP_label(pappas_only=True):
+    '''
+    Read ViSIProg groups
+    '''
 
     with open('visiprog/data/variedvisiprog-export.json') as f:
         data = json.load(f)
@@ -43,26 +101,38 @@ def read_VSP_label():
     for key in keys:
         entry = trials[key]
 
-        if entry['complete'] == 'true' and entry['user'] == 'pappas@eecs.northwestern.edu':
+        if entry['complete'] == 'true':
+            if pappas_only:
+                if entry['user'] != 'pappas@eecs.northwestern.edu':
+                    continue
+            
             group = entry['group']
             gs = [int(g) for g in group.strip().split(',')]
 
             groups.append(gs)
 
-    return groups, N
+    return groups, len(groups)
 
 
 def read_material_label():
+    '''
+    Read material label
+    Start from 0 (needed for metric learning)
+    '''
+
     label = np.genfromtxt('visiprog/data/label.csv', delimiter = ',').astype(int)
     label = label - 1
+    assert np.min(label) == 0
+
     return label
 
 
 def count_matrix(groups, N):
     """
-    Return pairwise matrix
+    Calculate pairwise matrix from 
     that has counts of number of images in the same group
     """
+
     S = np.zeros((N,N))
     N_group = len(groups[0])
     for g in groups:
@@ -85,6 +155,7 @@ def similarity_to_distance(S, missing_value = 0):
     0               --> missing_value
     etc
     """
+
     S_nonzero, nonZeroIndex = remove_zero_rows(S)
 
     # convert to similarity matrix
