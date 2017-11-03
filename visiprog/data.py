@@ -24,7 +24,7 @@ def read_VSP_label():
     N = 5245
     N_group = 9
 
-    with open('/home/andrey/Dropbox/Hacking/Research/VisiProg2/backupData/variedvisiprog-export.json') as f:
+    with open('visiprog/data/variedvisiprog-export.json') as f:
         data = json.load(f)
         trials = data['CURETALIASFREE']['trial']
         groups = data['CURETALIASFREE']['group']
