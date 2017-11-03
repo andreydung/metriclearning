@@ -6,9 +6,14 @@ import scipy
 from sklearn import manifold
 
 
+def get_raw_feature():
+    raw_feature = np.genfromtxt('visiprog/data/curetaliasfree.csv',delimiter=",")
+    return raw_feature
+
+
 def read_img_list():
-    folder = '/Users/andrey/Dropbox/Hacking/Research/VisiProg2/firebase/curetaliasfree/static/CURET/images'
-    listFile = '/Users/andrey/Dropbox/Hacking/Research/VisiProg2/firebase/curetaliasfree/static/CURET/list.txt'
+    folder = 'visiprog/data/curetaliasfree/images'
+    listFile = 'visiprog/data/curetaliasfree/list.txt'
     with open(listFile) as f:
         paths = f.readlines()
     paths = [os.path.join(folder, p.strip()) for p in paths]
@@ -19,7 +24,7 @@ def read_VSP_label():
     N = 5245
     N_group = 9
 
-    with open('/Users/andrey/Dropbox/Hacking/Research/VisiProg2/backupData/variedvisiprog-export.json') as f:
+    with open('/home/andrey/Dropbox/Hacking/Research/VisiProg2/backupData/variedvisiprog-export.json') as f:
         data = json.load(f)
         trials = data['CURETALIASFREE']['trial']
         groups = data['CURETALIASFREE']['group']
@@ -41,7 +46,7 @@ def read_VSP_label():
 
 
 def read_material_label():
-    label = np.genfromtxt('/Users/andrey/Dropbox/Hacking/Research/VisiProg2/analysis/thesis/visiprog/data/label.csv', delimiter = ',').astype(int)
+    label = np.genfromtxt('visiprog/data/label.csv', delimiter = ',').astype(int)
     label = label - 1
     return label
 
