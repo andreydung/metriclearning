@@ -20,6 +20,13 @@ def read_img_list():
     return paths
 
 
+def get_viewing_condition(img_name):
+    img = img_name.split('.')[0]
+    viewing_index = int(img.split('-')[1])
+
+    return viewing_index
+
+
 def read_VSP_label():
     N = 5245
     N_group = 9
