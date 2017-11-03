@@ -8,15 +8,15 @@ import itertools
 L = np.load('stsim_trained/trained.npy')
 
 
-def distance(path1, path2):
-	f1 = gen82Feature(path1)
-	f2 = gen82Feature(path2)
+def distance(im1, im2):
+    f1 = gen82Feature(im1)
+    f2 = gen82Feature(im2)
 
-	return np.linalg.norm(f1.dot(L.T) - f2.dot(L.T))
+    return np.linalg.norm(f1.dot(L.T) - f2.dot(L.T))
 
 
-def gen82Feature(path):
-    im = imread(path, as_grey=True)
+def gen82Feature(im):
+    # im = imread(path, as_grey=True)
 
     ss = Steerable(height=5)
     M, N = im.shape
