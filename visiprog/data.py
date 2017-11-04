@@ -29,7 +29,7 @@ def angle_between(v1, v2):
             >>> angle_between((1, 0, 0), (-1, 0, 0))
             3.141592653589793
     '''
-    
+
     def unit_vector(vector):
         """ Returns the unit vector of the vector.  """
         return vector / np.linalg.norm(vector)
@@ -76,10 +76,11 @@ def read_viewing_conditions():
 def viewing_condition_index(img_name):
     '''
     return viewing index based on image name
-    '''
 
-    img = img_name.split('.')[0]
-    viewing_index = int(img.split('-')[1])
+    deal with m as well (put for fixed alias images)
+
+    '''
+    viewing_index = int(img_name[3:6])
 
     return viewing_index
 
@@ -111,7 +112,7 @@ def read_VSP_label(pappas_only=True):
 
             groups.append(gs)
 
-    return groups, len(groups)
+    return groups
 
 
 def read_material_label():
