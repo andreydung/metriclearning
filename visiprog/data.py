@@ -80,7 +80,8 @@ def viewing_condition_index(img_name):
     deal with m as well (put for fixed alias images)
 
     '''
-    viewing_index = int(img_name[3:6])
+
+    viewing_index = int(os.path.basename(img_name)[3:6])
 
     return viewing_index
 
