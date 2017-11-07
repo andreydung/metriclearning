@@ -161,10 +161,7 @@ def illum_spatial_adjacent_graph():
     illum_vor = Voronoi(illum_points)
     tmp = illum_vor.ridge_points
 
-    # exclusion = [[19,1],[19,10], [21,19], [39,41], [30,19], [80,21],[80,30],[80,41],[135,94],[135,53]]
-    
-    exclusion = [[19,1],[19,10], [21,19], [39,41], [30,19],[80,30],[135,94],[53,99],[0,1],[3,1], [54,45]]
-
+    exclusion = [[19,1],[19,10], [21,19], [39,41], [30,19],[80,30],[135,94],[53,99],[0,1],[3,1], [54,45], [1,145]]
 
     illum_edges = []
     for edge in tmp:
@@ -184,8 +181,33 @@ def illum_spatial_adjacent_graph():
 
     return np.array(illum_edges)
 
-# def viewing_spatial_adjacent_graph():
-#     pass
+
+def viewing_spatial_adjacent_graph():
+    df_viewing = read_viewing_conditions()
+    viewing_points = df_viewing[['view_theta', 'view_phi']].as_matrix()
+    viewing_vor = Voronoi(viewing_points)
+    tmp = viewing_vor.ridge_points
+
+    exclusion = [[1,19],[1,167],[1,140],[1, 87],[1,94],[1,39],[10,39],[10,46],[46,56],[51,56],[51,64],[54,32],[10,135],[130,56],[96,64],[89,72],[19,5],[19,3],[19,0]]
+
+    viewing_edges = []
+    for edge in tmp:
+        # if np.abs(df_viewing['illum_y'].iloc[edge[0]]) < 1e-3 and \
+        #     np.abs(df_viewing['illum_y'].iloc[edge[1]]) < 1e-3:
+
+        taken = True
+        for e in exclusion:
+            if set(e) == set(edge):
+                taken = False
+                break
+    
+        if taken:
+            viewing_edges.append(edge)
+
+    viewing_edges.extend([[142,144],[96,93], [51,98],[135,100], [39,190],[167,134]])    
+
+    return viewing_edges
+
 
 def read_material_label():
     '''
