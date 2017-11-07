@@ -68,8 +68,27 @@ def read_img_list():
 def read_viewing_conditions():
     '''
     read the viewing condition index
+    also calculate the illum and view in Cartesian coordinates
     '''
     df = pd.read_csv('visiprog/data/viewing.csv', index_col=0)
+
+    cartesian = []
+
+    for i in range(df.shape[0]):
+        illum_x, illum_y, illum_z = polar_to_euclidean(df['illum_theta'].iloc[i],df['illum_phi'].iloc[i])
+        view_x, view_y, view_z = polar_to_euclidean(df['view_theta'].iloc[i],df['view_phi'].iloc[i])
+
+        cartesian.append((illum_x, illum_y, illum_z, view_x, view_y, view_z))
+
+    cartesian = np.array(cartesian)
+
+    df['illum_x'] = cartesian[:,0]
+    df['illum_y'] = cartesian[:,1]
+    df['illum_z'] = cartesian[:,2]
+    df['view_x'] = cartesian[:,3]
+    df['view_y'] = cartesian[:,4]
+    df['view_z'] = cartesian[:,5]
+    
     return df
 
 
@@ -86,7 +105,7 @@ def viewing_condition_index(img_name):
     return viewing_index
 
 
-def read_VSP_label(pappas_only=True):
+def read_VSP_label(pappas_only=True, sorted_by_material=False):
     '''
     Read ViSIProg groups
     '''
@@ -112,6 +131,23 @@ def read_VSP_label(pappas_only=True):
             gs = [int(g) for g in group.strip().split(',')]
 
             groups.append(gs)
+
+    if sorted_by_material:
+        materials = []
+        list_img = read_img_list()
+
+        for g in groups:
+            m = [int(os.path.basename(list_img[i])[:2]) for i in g]
+
+            if len(np.unique(np.array(m))) != 1:
+                material = -1
+            else:
+                material = m[0]
+
+            materials.append(material)
+
+        # sort groups based on material
+        groups = [g for _, g in sorted(zip(materials, groups))]
 
     return groups
 
