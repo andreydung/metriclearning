@@ -185,18 +185,17 @@ def illum_spatial_adjacent_graph():
     illum_edges.extend([[99,49],[94,37],[39,81],[30,22],[53,50], [99,42],[94,81]])
 
     G_illum = nx.Graph()
-    G_illum.add_nodes_from(range(df_viewing.shape[0]))
+    G_illum.add_nodes_from(df_viewing.index.values)
 
     for e in illum_edges:
-        G_illum.add_edge(e[0], e[1])
-
+        G_illum.add_edge(df.viewing.values[e[0]], df.viewing.values[e[1]])
 
     # deal with duplicate items
     duplicates = df_viewing.groupby(['illum_theta', 'illum_phi'])
 
-    for v, g in duplicates.groups.items():
-        for i in range(1,len(g)):
-            G_illum.add_edge(df_viewing.index.get_loc(g[i-1]), df_viewing.index.get_loc(g[i]))
+    for v, d in duplicates.groups.items():
+        for i in range(1,len(d)):
+            G_illum.add_edge(d[i-1], d[i])
 
     return G_illum
 
@@ -225,18 +224,19 @@ def viewing_spatial_adjacent_graph():
 
     viewing_edges.extend([[142,144],[96,93], [51,98],[135,100], [39,190],[167,134]])    
 
-    # deal with duplicate items
-    duplicates = df_viewing.groupby(['illum_theta', 'illum_phi'])
 
     G_viewing = nx.Graph()
-    G_viewing.add_nodes_from(range(df_viewing.shape[0]))
+    G_viewing.add_nodes_from(df_viewing.index.values)
 
-    for e in viewing_edges:
-        G_viewing.add_edge(e[0], e[1])
+    for e in illum_edges:
+        G_viewing.add_edge(df.viewing.values[e[0]], df.viewing.values[e[1]])
 
-    for v, g in duplicates.groups.items():
-        for i in range(1,len(g)):
-            G_viewing.add_edge(df_viewing.index.get_loc(g[i-1]), df_viewing.index.get_loc(g[i]))
+    # deal with duplicate items
+    duplicates = df_viewing.groupby(['viewing_theta', 'viewing_phi'])
+
+    for v, d in duplicates.groups.items():
+        for i in range(1,len(d)):
+            G_viewing.add_edge(d[i-1], d[i])
 
     return G_viewing
 
