@@ -5,6 +5,7 @@ import os
 import scipy
 from sklearn import manifold
 import pandas as pd
+from scipy.spatial import Voronoi
 
 
 def polar_to_euclidean(theta, phi):
@@ -149,8 +150,40 @@ def read_VSP_label(pappas_only=True, sorted_by_material=False):
         # sort groups based on material
         groups = [g for _, g in sorted(zip(materials, groups))]
 
+        return groups, sorted(materials)
+
     return groups
 
+
+def illum_spatial_adjacent_graph():
+    df_viewing = read_viewing_conditions()
+    illum_points = df_viewing[['illum_theta', 'illum_phi']].as_matrix()
+    illum_vor = Voronoi(illum_points)
+    tmp = illum_vor.ridge_points
+
+    # exclusion = [[19,1],[19,10], [21,19], [39,41], [30,19], [80,21],[80,30],[80,41],[135,94],[135,53]]
+    
+    exclusion = [[19,1],[19,10], [21,19], [39,41], [30,19],[80,21],[80,30],[80,41],[135,94],[135,53]]
+
+
+    illum_edges = []
+    for edge in tmp:
+        # if np.abs(df_viewing['illum_y'].iloc[edge[0]]) < 1e-3 and \
+        #     np.abs(df_viewing['illum_y'].iloc[edge[1]]) < 1e-3:
+
+        taken = True
+        for e in exclusion:
+            if set(e) == set(edge):
+                taken = False
+                break
+    
+        if taken:
+            illum_edges.append(edge)
+
+    return np.array(illum_edges)
+
+# def viewing_spatial_adjacent_graph():
+#     pass
 
 def read_material_label():
     '''
