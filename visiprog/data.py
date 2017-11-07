@@ -6,6 +6,11 @@ import scipy
 from sklearn import manifold
 import pandas as pd
 from scipy.spatial import Voronoi
+import logging
+import networkx as nx
+
+
+logger = logging.getLogger(__name__)
 
 
 def polar_to_euclidean(theta, phi):
@@ -106,7 +111,7 @@ def viewing_condition_index(img_name):
     return viewing_index
 
 
-def read_VSP_label(pappas_only=True, sorted_by_material=False):
+def read_VSP_label(pappas_only=True, sorted_by_material=True):
     '''
     Read ViSIProg groups
     '''
@@ -133,6 +138,8 @@ def read_VSP_label(pappas_only=True, sorted_by_material=False):
 
             groups.append(gs)
 
+    sorted_material = None
+
     if sorted_by_material:
         materials = []
         list_img = read_img_list()
@@ -149,13 +156,13 @@ def read_VSP_label(pappas_only=True, sorted_by_material=False):
 
         # sort groups based on material
         groups = [g for _, g in sorted(zip(materials, groups))]
+        sorted_material = sorted(materials)
 
-        return groups, sorted(materials)
-
-    return groups
+    return groups, sorted_material
 
 
 def illum_spatial_adjacent_graph():
+
     df_viewing = read_viewing_conditions()
     illum_points = df_viewing[['illum_theta', 'illum_phi']].as_matrix()
     illum_vor = Voronoi(illum_points)
@@ -165,8 +172,6 @@ def illum_spatial_adjacent_graph():
 
     illum_edges = []
     for edge in tmp:
-        # if np.abs(df_viewing['illum_y'].iloc[edge[0]]) < 1e-3 and \
-        #     np.abs(df_viewing['illum_y'].iloc[edge[1]]) < 1e-3:
 
         taken = True
         for e in exclusion:
@@ -179,7 +184,21 @@ def illum_spatial_adjacent_graph():
 
     illum_edges.extend([[99,49],[94,37],[39,81],[30,22],[53,50], [99,42],[94,81]])
 
-    return np.array(illum_edges)
+    G_illum = nx.Graph()
+    G_illum.add_nodes_from(range(df_viewing.shape[0]))
+
+    for e in illum_edges:
+        G_illum.add_edge(e[0], e[1])
+
+
+    # deal with duplicate items
+    duplicates = df_viewing.groupby(['illum_theta', 'illum_phi'])
+
+    for v, g in duplicates.groups.items():
+        for i in range(1,len(g)):
+            G_illum.add_edge(df_viewing.index.get_loc(g[i-1]), df_viewing.index.get_loc(g[i]))
+
+    return G_illum
 
 
 def viewing_spatial_adjacent_graph():
@@ -206,7 +225,20 @@ def viewing_spatial_adjacent_graph():
 
     viewing_edges.extend([[142,144],[96,93], [51,98],[135,100], [39,190],[167,134]])    
 
-    return viewing_edges
+    # deal with duplicate items
+    duplicates = df_viewing.groupby(['illum_theta', 'illum_phi'])
+
+    G_viewing = nx.Graph()
+    G_viewing.add_nodes_from(range(df_viewing.shape[0]))
+
+    for e in viewing_edges:
+        G_viewing.add_edge(e[0], e[1])
+
+    for v, g in duplicates.groups.items():
+        for i in range(1,len(g)):
+            G_viewing.add_edge(df_viewing.index.get_loc(g[i-1]), df_viewing.index.get_loc(g[i]))
+
+    return G_viewing
 
 
 def read_material_label():
