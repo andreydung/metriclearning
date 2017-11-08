@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 import json
 from sklearn import cluster
@@ -159,6 +160,68 @@ def read_VSP_label(pappas_only=True, sorted_by_material=True):
         sorted_material = sorted(materials)
 
     return groups, sorted_material
+
+
+def get_old_visiprog_coverage():
+
+    filepath = 'visiprog/data/visiprogv1-export.json'
+
+    with open(filepath) as f:
+        data = json.load(f)
+        trials = data['CURETALIASFREE']['trial']
+
+        counter = {}
+
+        ratio = []
+        coverage = 0
+
+        N_TOTAL = 5245
+
+        for k, v in trials.items():
+
+            if v['complete'] == 'true':
+
+                ids = [int(s) for s in v['group'].strip().split(',')]
+                
+                for i in ids:
+                    if not i in counter:
+                        counter[i] = True
+                        coverage += 1
+
+                        ratio.append(100 * coverage/N_TOTAL)
+
+    return ratio
+
+
+def get_varied_visiprog_coverage():
+
+    filepath = 'visiprog/data/variedvisiprog-export.json'
+
+    with open(filepath) as f:
+        data = json.load(f)
+        trials = data['CURETALIASFREE']['trial']
+
+        counter = {}
+
+        ratio = []
+        coverage = 0
+
+        N_TOTAL = 5245
+
+        for k, v in trials.items():
+
+            if v['complete'] == 'true':
+
+                ids = [int(s) for s in v['group'].strip().split(',')]
+                
+                for i in ids:
+                    if not i in counter:
+                        counter[i] = True
+                        coverage += 1
+
+                        ratio.append(100 * coverage/N_TOTAL)
+
+    return ratio
 
 
 def illum_spatial_adjacent_graph():
