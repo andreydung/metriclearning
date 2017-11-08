@@ -177,7 +177,8 @@ def get_old_visiprog_coverage():
 
         N_TOTAL = 5245
 
-        for k, v in trials.items():
+        for k in sorted(trials.keys()):
+            v = trials[k]
 
             if v['complete'] == 'true':
 
@@ -188,7 +189,7 @@ def get_old_visiprog_coverage():
                         counter[i] = True
                         coverage += 1
 
-                        ratio.append(100 * coverage/N_TOTAL)
+                ratio.append(100 * coverage/N_TOTAL)
 
     return ratio
 
@@ -208,7 +209,9 @@ def get_varied_visiprog_coverage():
 
         N_TOTAL = 5245
 
-        for k, v in trials.items():
+
+        for k in sorted(trials.keys()):
+            v = trials[k]
 
             if v['complete'] == 'true':
 
@@ -219,7 +222,7 @@ def get_varied_visiprog_coverage():
                         counter[i] = True
                         coverage += 1
 
-                        ratio.append(100 * coverage/N_TOTAL)
+                ratio.append(100 * coverage/N_TOTAL)
 
     return ratio
 
