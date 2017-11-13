@@ -2,6 +2,7 @@ from sklearn.neighbors import NearestNeighbors
 import numpy as np 
 from .data import read_material_label
 from sklearn.model_selection import train_test_split
+from sklearn.cluster import KMeans
 import logging
 
 
@@ -44,3 +45,49 @@ def leave_one_sample_out(X_train, Y_train, X_test = None, Y_test=None):
 	results['prediction'] = prediction
 
 	return results
+
+
+def kmean_subclass(X_train, Y_train, X_test, Y_test, n_clusters):
+	'''
+	instead of 1 nearest neighbor
+	use the subclass exemplar
+	'''
+
+	logger.info("KMeans clustering")
+
+	logger.info(Y_train)
+
+	codebook = []
+	label = []
+	for unique_value in np.unique(Y_train):
+		# logger.info(unique_value)
+		index = np.where(Y_train == unique_value)
+		subset = X_train[index]
+
+		# logger.info(subset.shape[0])
+		# logger.info(Y_train[index])
+
+		km = KMeans(n_clusters=n_clusters, init='k-means++', n_jobs=-1)
+		km.fit(subset)
+
+		codebook.append(km.cluster_centers_)
+		label.append(unique_value * np.ones((n_clusters,)))
+
+	codebook = np.vstack(codebook)
+	label = np.hstack(label)
+
+	# use the codebook to validate the test set
+	logger.info("Running on test set")
+	
+	nbrs = NearestNeighbors(n_neighbors=2, algorithm='auto').fit(codebook)
+	distances, indices = nbrs.kneighbors(X_test)
+	prediction = label[indices[:,0]]
+
+	accuracy = np.mean(prediction == Y_test)
+
+	res = {}
+	res['accuracy'] = accuracy
+	res['prediction'] = prediction
+
+	return res
+	
