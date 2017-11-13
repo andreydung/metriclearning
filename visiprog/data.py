@@ -112,7 +112,37 @@ def viewing_condition_index(img_name):
     return viewing_index
 
 
-def read_VSP_label(pappas_only=True, sorted_by_material=True):
+def get_VSP_label(groups, N):
+    '''
+    read VSP label, to be used for metric training
+    False elements mean that it's not labeled by VSP
+    '''
+
+    label_visiprog = np.zeros((N,))
+
+    count = 0
+    for g in groups:
+        label = False
+        
+        # check whether any entry in the group has been labelled yet
+        # if yes, then merge with that existing label
+        for i in g:
+            if label_visiprog[i] != 0:
+                label = label_visiprog[i]
+                break
+        
+        # if no, then create a new label
+        if label == False:
+            count += 1
+            label = count
+            
+        for i in g:
+            label_visiprog[i] = label
+
+    return label_visiprog
+
+
+def read_VSP_group(pappas_only=True, sorted_by_material=True):
     '''
     Read ViSIProg groups
     '''
