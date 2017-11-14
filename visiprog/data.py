@@ -1,9 +1,8 @@
 from __future__ import division
 import numpy as np
 import json
-from sklearn import cluster
+from sklearn.cluster import DBSCAN
 import os
-import scipy
 from sklearn import manifold
 import pandas as pd
 from scipy.spatial import Voronoi
@@ -369,29 +368,6 @@ def count_matrix(groups, N):
     return S
 
 
-def similarity_to_distance(S, missing_value = 0):
-    """
-    Convert distance matrix to similarity matrix
-    Remove all zero rows
-    Identical image --> 0
-    Mostly labelled --> 1
-    0               --> missing_value
-    etc
-    """
-
-    S_nonzero, nonZeroIndex = remove_zero_rows(S)
-
-    # convert to similarity matrix
-    # set the diagonal to be 0
-    np.fill_diagonal(S_nonzero, 0)
-    D = np.max(S_nonzero) + 1 - S_nonzero
-
-    np.fill_diagonal(D, 0)
-    D[D == np.max(D)] = missing_value
-
-    return D, nonZeroIndex
-
-
 def remove_zero_rows(S):
     """ 
     remove entries with all zeroes
@@ -414,50 +390,80 @@ def Jana_method(S):
     return Adjacent, nonZeroIndex
 
 
-
-def spectral_clustering(S):
+def distToSimilarity(D):
     """
     Convert distance matrix to similarity matrix
     Remove all zero rows
-    Identical image --> 0
-    Mostly labelled --> 1
-    0               --> large number
-    etc
     """
+    N = D.shape[0]
 
-    S_nonzero, nonZeroIndex = remove_zero_rows(S)
+    # remove entries with all zeroes
+    # means that it is not covered by ViSiProg
+    marginal_sum = np.sum(np.multiply(D, 1 - np.eye(N)), axis = 0)
+    nonZeroIndex = np.where(marginal_sum > 0)[0]
+    Dred = D[:, nonZeroIndex][nonZeroIndex,:]
 
     # convert to similarity matrix
-    # set the diagonal to be 0
-    Adjacent = S_nonzero/(np.max(S_nonzero) + 1)
-    np.fill_diagonal(Adjacent, 0)
+    Nred = Dred.shape[0]
+
+    logger.info("After removing non zero entries, N is %d" % Nred)
+
+    Sm = np.multiply(Dred, 1 - np.eye(Nred))
+    Sm = Sm/(np.max(Dred) + 1) + np.eye(Nred)           # diagonal is 1, side is calibrated to 1
+
+    return Sm, nonZeroIndex
 
 
-    print("Adjacent")
-    print(Adjacent)
+
+def spectralClusteringDBSCAN(D, threshold, eps, min_samples=9):
+    """ spectral Clustering on a distance matrix
+     return the clusters as a list of list of indexes
+    """
+    # check that D is symmetric
+    assert np.allclose(D.T, D)
+
+    # thresholding
+    D[D < threshold] = 0
+
+    N = D.shape[0]
+    Sm, nonZeroIndex = distToSimilarity(D)
 
     # Laplacian matrix
-    Degree = np.diag(np.sum(Adjacent, axis=0))  # degree matrix
-    Laplacian = Degree - Adjacent
+    Dmat = np.diag(np.sum(Sm, axis = 0))    # degree matrix
+    Lmat = Dmat - Sm                        # laplacian L = D - A
 
-    print("Laplacian")
-    print(Laplacian)
-
-    eigenValues, eigenVectors = np.linalg.eig(Laplacian)
+    # eigenvalue and eigenvector decomposition
+    eigenValues, eigenVectors = np.linalg.eig(Lmat)
 
     eigenValues = np.abs(eigenValues)
     eigenVectors = np.abs(eigenVectors)
-    
+
+    # sort so that smallest eigenvalues go first
     idx = eigenValues.argsort()
     eigenValues = eigenValues[idx]
     eigenVectors = eigenVectors[:,idx]
 
 
-    # take first ith eigenvectors
-    X = eigenVectors[:,:10] 
+    N_disconnected_clusters = np.sum(eigenValues < eps)
+    logger.info("Number of disconnected elements is %d\n" % N_disconnected_clusters)
 
-    return X, nonZeroIndex
+    X = eigenVectors[:,:N_disconnected_clusters] 
+    db = DBSCAN(eps, min_samples).fit(X)
 
+    labels = db.labels_
+
+    clusters = []
+    for value in set(labels):
+        c = list(np.where(labels == value)[0])
+        clusters.append(c)
+
+    # since D is truncated, need to convert index to original one
+    clustersBeforeTruncate = []
+    for c in clusters:
+        tmp = [nonZeroIndex[i] for i in c]
+        clustersBeforeTruncate.append(tmp)
+
+    return clustersBeforeTruncate
 
 
 def MDS(D):

@@ -67,7 +67,7 @@ def kmean_subclass(X_train, Y_train, X_test, Y_test, n_clusters):
 		# logger.info(subset.shape[0])
 		# logger.info(Y_train[index])
 
-		km = KMeans(n_clusters=n_clusters, init='k-means++', n_jobs=-1)
+		km = KMeans(n_clusters=n_clusters, init='k-means++')
 		km.fit(subset)
 
 		codebook.append(km.cluster_centers_)
