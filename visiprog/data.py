@@ -415,7 +415,7 @@ def distToSimilarity(D):
 
 
 
-def spectralClusteringDBSCAN(D, threshold, eps, min_samples=9):
+def spectralClusteringDBSCAN(D, threshold, eps, min_samples=9, manual_edit=True):
     """ spectral Clustering on a distance matrix
      return the clusters as a list of list of indexes
     """

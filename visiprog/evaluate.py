@@ -2,6 +2,7 @@ from sklearn.neighbors import NearestNeighbors
 import numpy as np 
 from .data import read_material_label
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import pairwise_distances_argmin_min
 from sklearn.cluster import KMeans
 import logging
 
@@ -45,6 +46,30 @@ def leave_one_sample_out(X_train, Y_train, X_test = None, Y_test=None):
 	results['prediction'] = prediction
 
 	return results
+
+
+def find_exemplars_kmeans_whole(X, n_clusters):
+
+	km = KMeans(n_clusters).fit(X_cluster)
+	closest, _ = pairwise_distances_argmin_min(km.cluster_centers_, X)
+
+	return closest
+
+
+def find_exemplars(X, clusters_label, n_clusters):
+	exemlpars_index = []
+
+	clusters = [np.where(clusters_label == value)[0] for value in np.unique(clusters_label)]
+
+	# finding exemplars within each cluster
+	for cluster in clusters:
+		X_cluster = X[np.array(cluster)]
+
+		km = KMeans(n_clusters).fit(X_cluster)
+		closest, _ = pairwise_distances_argmin_min(km.cluster_centers_, X)
+		exemlpars_index.append(closest)
+	
+	return np.concatenate(exemlpars_index, axis=0)
 
 
 def kmean_subclass(X_train, Y_train, X_test, Y_test, n_clusters):
