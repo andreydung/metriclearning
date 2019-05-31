@@ -48,15 +48,15 @@ def leave_one_sample_out(X_train, Y_train, X_test = None, Y_test=None):
 	return results
 
 
-def find_exemplars_kmeans_whole(X, n_clusters):
+# def find_exemplars_kmeans_whole(X, n_clusters):
 
-	km = KMeans(n_clusters).fit(X_cluster)
-	closest, _ = pairwise_distances_argmin_min(km.cluster_centers_, X)
+# 	km = KMeans(n_clusters).fit(X)
+# 	closest, _ = pairwise_distances_argmin_min(km.cluster_centers_, X)
 
-	return closest
+# 	return closest
 
 
-def find_exemplars(X, clusters_label, n_clusters):
+def find_exemplars(X, clusters_label):
 	exemlpars_index = []
 
 	clusters = [np.where(clusters_label == value)[0] for value in np.unique(clusters_label)]
@@ -64,6 +64,12 @@ def find_exemplars(X, clusters_label, n_clusters):
 	# finding exemplars within each cluster
 	for cluster in clusters:
 		X_cluster = X[np.array(cluster)]
+
+		if len(cluster) >=25:
+			n_clusters = 4
+		else:
+			n_clusters = 2
+
 
 		km = KMeans(n_clusters).fit(X_cluster)
 		closest, _ = pairwise_distances_argmin_min(km.cluster_centers_, X)

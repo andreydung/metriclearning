@@ -336,13 +336,23 @@ def viewing_spatial_adjacent_graph():
     return G_viewing
 
 
-def read_material_label():
+def read_material_label(merge_zoom=True):
     '''
     Read material label
     Start from 0 (needed for metric learning)
     '''
 
     label = np.genfromtxt('visiprog/data/label.csv', delimiter = ',').astype(int)
+    
+    if merge_zoom:
+        label[label==29] = 2
+        label[label==30] = 11
+        label[label==31] = 12
+        label[label==32] = 14
+
+        for i in range(33, 62):
+            label[label == i] = i - 4
+
     label = label - 1
     assert np.min(label) == 0
 
